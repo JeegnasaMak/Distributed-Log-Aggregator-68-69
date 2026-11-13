@@ -1,0 +1,6 @@
+Open your VS Code terminal and activate your existing virtual environment:
+.\.venv\Scripts\Activate.ps1
+
+Then run:
+pip freeze > requirements.txt
+This generates the dependency file.
