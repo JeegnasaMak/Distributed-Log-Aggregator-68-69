@@ -187,8 +187,7 @@ The project provides a centralized approach to handling logs from multiple simul
 
 ---
 
-**Project:** Distributed Log Aggregator & Indexer  
-**Dashboard:** LogFlow  
-**Domain:** System Design  
-**Developed using:** Python, Flask, Amazon SQS, SQLite and Web Technologies.
-**Developed using:** Jeegnasa Makwana(68) & Leena Chavan(69)
+* **Domain:** System Design
+* **Dashboard:** LogFlow
+* **Tech Stack:** Python, Flask, Amazon SQS, SQLite, and Web Technologies
+* **Developed By:** Jeegnasa Makwana (68) & Leena Chavan (69)
