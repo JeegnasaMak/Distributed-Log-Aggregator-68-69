@@ -1,0 +1,418 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>LogFlow | Distributed Log Aggregator</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="dashboard">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="brand">
+            <div class="brand-icon">L</div>
+            <div>
+                <h2>LogFlow</h2>
+                <p>Monitoring System</p>
+            </div>
+        </div>
+
+        <p class="side-label">MAIN MENU</p>
+
+        <a href="#overview" class="nav-link active">▦ Overview</a>
+        <a href="#workers" class="nav-link">⚙ Worker Simulation</a>
+        <a href="#analytics" class="nav-link">▥ Analytics</a>
+        <a href="#logs" class="nav-link">☷ Log Explorer</a>
+        <a href="#alerts" class="nav-link">🚨 Error Alerts</a>
+
+        <div class="sidebar-bottom">
+            <div class="system-status">
+                <span class="status-dot" id="sidebarStatusDot"></span>
+                <span id="sidebarStatusText">Connecting...</span>
+            </div>
+            <p>Distributed Log Aggregator</p>
+            <small>Amazon SQS + Dynamic Workers</small>
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- HEADER -->
+        <header class="topbar">
+
+            <div>
+                <span class="eyebrow">SYSTEM MONITORING CONSOLE</span>
+                <h1>Log Monitoring Dashboard</h1>
+                <p>Monitor, analyze and manage logs from multiple servers.</p>
+            </div>
+
+            <div class="topbar-right">
+                <span class="live-label">
+                    <span class="live-dot"></span>
+                    LIVE MONITORING
+                </span>
+
+                <button class="refresh-btn"
+                        onclick="refreshDashboard()">
+                    ↻ Refresh
+                </button>
+            </div>
+
+        </header>
+
+
+        <!-- OVERVIEW -->
+        <section id="overview">
+
+            <div class="section-heading">
+                <div>
+                    <h2>System Overview</h2>
+                    <p>Real-time summary of collected application logs.</p>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+
+                <div class="stat-card total-card">
+                    <div class="stat-top">
+                        <span>Total Logs Stored</span>
+                        <span class="stat-icon">📋</span>
+                    </div>
+                    <h2 id="totalLogs">0</h2>
+                    <span>Logs saved in SQLite</span>
+                </div>
+
+                <div class="stat-card info-card">
+                    <div class="stat-top">
+                        <span>INFO Logs</span>
+                        <span class="stat-icon">🟦</span>
+                    </div>
+                    <h2 id="infoLogs">0</h2>
+                    <span>Normal activity</span>
+                </div>
+
+                <div class="stat-card warning-card">
+                    <div class="stat-top">
+                        <span>WARNING Logs</span>
+                        <span class="stat-icon">🟡</span>
+                    </div>
+                    <h2 id="warningLogs">0</h2>
+                    <span>Potential issues</span>
+                </div>
+
+                <div class="stat-card error-card">
+                    <div class="stat-top">
+                        <span>ERROR Logs</span>
+                        <span class="stat-icon">🔴</span>
+                    </div>
+                    <h2 id="errorLogs">0</h2>
+                    <span>Detected failures</span>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- LIVE SYSTEM MONITOR -->
+        <section id="system-monitor">
+
+            <div class="section-heading">
+                <div>
+                    <h2>☁ Live System Monitor</h2>
+                    <p>Current queue and processing activity.</p>
+                </div>
+                <span class="system-pill" id="systemStatus">CONNECTING</span>
+            </div>
+
+            <div class="monitor-grid">
+
+                <div class="monitor-card">
+                    <span class="monitor-label">Active Workers</span>
+                    <strong id="activeWorkers">0</strong>
+                    <small>Dynamic Python threads</small>
+                </div>
+
+                <div class="monitor-card">
+                    <span class="monitor-label">Total Processed</span>
+                    <strong id="processedLogs">0</strong>
+                    <small>Successfully processed</small>
+                </div>
+
+                <div class="monitor-card">
+                    <span class="monitor-label">Messages Waiting</span>
+                    <strong id="waitingMessages">0</strong>
+                    <small>Amazon SQS backlog</small>
+                </div>
+
+                <div class="monitor-card">
+                    <span class="monitor-label">Messages Processing</span>
+                    <strong id="processingMessages">0</strong>
+                    <small>Currently invisible in SQS</small>
+                </div>
+
+            </div>
+
+            <div class="workload-card">
+
+                <div class="workload-top">
+                    <div>
+                        <span class="eyebrow">AUTOMATIC WORKLOAD GENERATOR</span>
+                        <h3 id="workloadPhase">NORMAL</h3>
+                        <p id="workloadDescription">
+                            Workload is being monitored.
+                        </p>
+                    </div>
+
+                    <div class="rate-box">
+                        <strong id="workloadRate">0</strong>
+                        <span>logs / second</span>
+                    </div>
+                </div>
+
+                <div class="phase-track">
+                    <span class="phase-step" data-phase="NORMAL">NORMAL</span>
+                    <span class="phase-step" data-phase="INCREASING">INCREASING</span>
+                    <span class="phase-step" data-phase="SPIKE">SPIKE</span>
+                    <span class="phase-step" data-phase="HEAVY">HEAVY</span>
+                    <span class="phase-step" data-phase="DECREASING">DECREASING</span>
+                </div>
+
+                <div class="workload-footer">
+                    <span>Total generated: <strong id="generatedLogs">0</strong></span>
+                    <span>Failed messages: <strong id="failedLogs">0</strong></span>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- WORKER SIMULATION -->
+        <section id="workers">
+
+            <div class="section-heading">
+                <div>
+                    <h2>⚙ Dynamic Worker Simulation</h2>
+                    <p>Worker threads automatically scale according to SQS backlog.</p>
+                </div>
+
+                <span class="worker-count-pill">
+                    <span id="workerCountLabel">0</span> Active
+                </span>
+            </div>
+
+            <div class="worker-explanation">
+                <div class="worker-explanation-icon">↗</div>
+                <div>
+                    <strong>Automatic horizontal worker scaling</strong>
+                    <p>
+                        When the queue backlog increases, additional worker
+                        threads are created. When workload decreases, extra
+                        workers are stopped.
+                    </p>
+                </div>
+            </div>
+
+            <div class="worker-grid" id="workerGrid">
+                <div class="empty-worker">
+                    Waiting for worker manager...
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- ANALYTICS -->
+        <section id="analytics">
+
+            <div class="section-heading">
+                <div>
+                    <h2>📈 Log Analytics</h2>
+                    <p>Severity-wise and server-wise log distribution.</p>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+
+                <div class="chart-card">
+                    <h3>Severity Distribution</h3>
+                    <p>Logs grouped by severity level</p>
+                    <div class="chart-container">
+                        <canvas id="severityChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>Server-wise Distribution</h3>
+                    <p>Logs received from each server</p>
+                    <div class="chart-container">
+                        <canvas id="serverChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ERROR ALERTS -->
+        <section id="alerts">
+
+            <div class="section-heading">
+                <div>
+                    <h2>🚨 Error Alerts</h2>
+                    <p>Recently detected application errors.</p>
+                </div>
+
+                <span class="alert-count" id="alertCount">0 Errors</span>
+            </div>
+
+            <div class="alert-panel" id="errorList">
+                <p class="no-errors">Loading error alerts...</p>
+            </div>
+
+        </section>
+
+
+        <!-- LOG EXPLORER -->
+        <section id="logs">
+
+            <div class="section-heading">
+                <div>
+                    <h2>☷ Log Explorer</h2>
+                    <p>Search, filter and inspect stored application logs.</p>
+                </div>
+            </div>
+
+            <div class="filter-panel">
+
+                <input type="text"
+                       id="keyword"
+                       placeholder="🔍 Search keyword...">
+
+                <select id="levelFilter">
+                    <option value="">All Severity Levels</option>
+                    <option value="INFO">INFO</option>
+                    <option value="WARNING">WARNING</option>
+                    <option value="ERROR">ERROR</option>
+                </select>
+
+                <select id="serverFilter">
+                    <option value="">All Servers</option>
+                    <option value="SERVER-1">SERVER-1</option>
+                    <option value="SERVER-2">SERVER-2</option>
+                    <option value="SERVER-3">SERVER-3</option>
+                </select>
+
+                <button onclick="loadLogs()">Search</button>
+
+                <button class="clear-btn" onclick="clearFilters()">
+                    Clear Filters
+                </button>
+
+            </div>
+
+            <div class="table-card">
+
+                <div class="table-header">
+                    <div>
+                        <h3>Application Logs</h3>
+                        <span id="logCountLabel">0 records</span>
+                    </div>
+
+                    <div class="table-actions">
+                        <button class="export-btn"
+                                onclick="exportLogs()">
+                            ↓ Export CSV
+                        </button>
+
+                        <button class="delete-btn"
+                                onclick="clearAllLogs()">
+                            Clear Database Logs
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Timestamp</th>
+                                <th>Server</th>
+                                <th>Severity</th>
+                                <th>Message</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="logsTable">
+                            <tr>
+                                <td colspan="6">Loading logs...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- LOG DETAILS MODAL -->
+        <div id="logModal" class="modal"
+             onclick="closeModalOutside(event)">
+
+            <div class="modal-content">
+
+                <button class="modal-close"
+                        onclick="closeLogDetails()">
+                    ×
+                </button>
+
+                <span class="eyebrow">LOG INFORMATION</span>
+                <h2>Log Details</h2>
+                <p>Complete information about the selected log.</p>
+
+                <div id="logDetails"></div>
+
+            </div>
+
+        </div>
+
+
+        <!-- FOOTER -->
+        <footer>
+            <div>
+                <strong>LogFlow</strong>
+                <span>Distributed Log Aggregator & Indexer</span>
+            </div>
+
+            <span>Built By Jeegnasa & Leena</span>
+        </footer>
+
+    </main>
+
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>
